@@ -1,34 +1,43 @@
-const fs = require('fs')
+const fs = require('fs');
+const {
+  puzzle
+} = require('.');
 
-let _PData;
+let puzzles;
+
+
 module.exports = {
-    name: 'puzzle',
-    description: 'Starts a new puzzle',
-    execute(msg, args) {
-      let puzzleData;
+  name: 'puzzle',
+  description: 'Starts a new puzzle',
+  execute(msg, args) {
+    let puzzleData;
+    let _data = fs.readFileSync('./puzzles/puzzles.json');
+    puzzles = JSON.parse(_data)
+    let puzzleNum;
+    if (args.length == 0) {
+      puzzleNum = Math.floor(Math.random() * puzzles.length)
+    } else if (!isNaN(args[0])) {
+      puzzleNum = puzzles.findIndex(x => x.id == parseInt(args[0]))
+    } else {
+      puzzleNum = Math.floor(Math.random() * puzzles.length)
+    }
 
-      //todo, dynamically generate puzzle list. this works for now. 
-      let puzzleList = [...Array(4930).keys()].map(x=>x+1) //dont have 1.json, oof
-      
-      puzzleNum = Math.floor(Math.random()*puzzleList.length)+1
+    puzzleData = {
+      toPlay: puzzles[puzzleNum].toPlay,
+      rating: puzzles[puzzleNum].rating,
+      lines: puzzles[puzzleNum].lines,
+      fen: puzzles[puzzleNum].startingPos,
+      lastMove: puzzles[puzzleNum].lastMove,
+      rating: puzzles[puzzleNum].rating
+    }
+    return {
+      type: 'puzzle',
+      value: puzzleData
+    }
+  },
+};
 
-      console.log('Starting Puzzle :' + puzzleNum.toString());
-      data = fs.readFileSync('./puzzles/'+puzzleNum+'.json');
-      picPath = './puzzles/'+puzzleNum+'.png';
-      let _data = JSON.parse(data);
-      puzzleData = {
-        toPlay : _data.data.puzzle.color,
-        rating : _data.data.puzzle.rating,
-        lines : _data.data.puzzle.lines,
-        data: _data.data,
-        fen: fixFen(_data.data.game.treeParts.slice(-1).pop()['fen']),
-        lastMove: _data.data.game.treeParts.slice(-1).pop()['uci']
-      }
-      return {type:'puzzle',value:puzzleData}
-    },
-  };
-
-function fixFen(fen){
+function fixFen(fen) {
   brokenFen = fen.split('/')[7].split('')
   fixedLastRow = '';
   let spots = 0;
@@ -39,11 +48,11 @@ function fixFen(fen){
       spots = spots + parseInt(brokenFen[i])
     }
     fixedLastRow = fixedLastRow + brokenFen[i]
-    if (spots >= 8 ){
+    if (spots >= 8) {
       break;
     }
   }
-  fixedLastRow = fixedLastRow 
+  fixedLastRow = fixedLastRow
   fixedFen = fen.split('/')
   fixedFen[7] = fixedLastRow
   fixedFen = fixedFen.join('/')

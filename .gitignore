@@ -3,5 +3,5 @@ node_modules/
 
 .vscode
 .env
-puzzles/*.json
-puzzles/*.png
+puzzles/puzzlesOld/*.json
+puzzles/puzzlesOld/*.png

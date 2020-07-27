@@ -36,6 +36,7 @@ class ChessBoard{
         this.moveType = moveType;
         this._boardState = [];
         this.imgPath;
+        this.pov = pov;
         this.buildBoardState();
     }
 
@@ -93,8 +94,15 @@ class ChessBoard{
         context.textBaseline = 'middle'
         context.textAlign = 'center'
 
-        let a_h = ['a','b','c','d','e','f','g','h'];
-        let n_N = [...Array(8).keys()].map(x=>x+1).reverse();
+        let a_h, n_N;
+        if (this.pov=='black'){
+            a_h = ['h','g','f','e','d','c','b','a'];
+            n_N = [...Array(8).keys()].map(x=>x+1)
+        } else {
+            a_h = ['a','b','c','d','e','f','g','h'];
+            n_N = [...Array(8).keys()].map(x=>x+1).reverse();
+        }
+
         for (let i in a_h){
             context.fillText(a_h[i],margin+i*cellSize+cellSize/2,margin/2)
             context.fillText(a_h[i],margin+i*cellSize+cellSize/2,height+1.5*margin)
@@ -104,14 +112,19 @@ class ChessBoard{
             context.fillText(n_N[i],width+1.5*margin,margin+i*cellSize+cellSize/2)
         }
 
-
-
-
+        
         //go through each point and draw a the rect, and a piece if needs to be drawn.
         for (let i =0; i<this.longBoardState.length; i++){
             //color that shit x/y is based from top left as orgin
-            let x=this.longBoardState[i].numericCoords[0]
-            let y=this.longBoardState[i].numericCoords[1]
+            let x,y;
+            if (this.pov =='black'){
+                x=Math.abs(this.longBoardState[i].numericCoords[0]-8)
+                y=Math.abs(this.longBoardState[i].numericCoords[1]-8)
+            } else {
+                x=this.longBoardState[i].numericCoords[0]
+                y=this.longBoardState[i].numericCoords[1]
+            }
+
             let color;
             switch (this.longBoardState[i].color){
                 case 'light' : {color = '#F0D9B5' ; break;}
@@ -121,14 +134,24 @@ class ChessBoard{
                 default: '#fff'
             }      
             context.fillStyle = color;
-            context.fillRect(x*cellSize+margin, y*cellSize+margin,cellSize,cellSize);
+            if(this.pov == 'black'){
+                context.fillRect(x*cellSize+margin-cellSize, y*cellSize+margin-cellSize,cellSize,cellSize);
+            } else {
+                context.fillRect(x*cellSize+margin, y*cellSize+margin,cellSize,cellSize);
+            }
+            
 
             //console.log(this.longBoardState[i].color, color, x,y,)
 
             //Add the imgs to the board
             let piece = this.longBoardState[i].piece
             if (piece){
-                context.drawImage(imgData[piece].img,x*cellSize+margin,y*cellSize+margin,cellSize,cellSize)
+                if (this.pov == 'black'){
+                    context.drawImage(imgData[piece].img,x*cellSize+margin-cellSize,y*cellSize+margin-cellSize,cellSize,cellSize)
+                } else {
+                    context.drawImage(imgData[piece].img,x*cellSize+margin,y*cellSize+margin,cellSize,cellSize)
+                }
+                
             }
         }
         const buffer = canvas.toBuffer('image/png')
@@ -221,7 +244,7 @@ class Square {
         this.mathCoords;
         this.occupied = piece ? true : false; //boolean if occupied
         this.piece = piece; //piece on this square
-        this.color = this.findColor(coords,lastMove); //light(+) or dark(+)
+        this.color = this.findColor(coords,lastMove); //light
         this.numericCoords = numericCoords; //ie [0,0],[1,5]
     }
     findColor(coords,lastMove){
@@ -241,8 +264,8 @@ class Square {
     }
 }
 
-exports.NewChessBoard= (fen,lastMove,nextMove)=>{
-    return new ChessBoard(fen,lastMove,nextMove)
+exports.NewChessBoard= (fen,lastMove,nextMove,pov)=>{
+    return new ChessBoard(fen,lastMove,nextMove,pov)
 }
  
 function drawCurrentImg(canvas){
@@ -321,12 +344,6 @@ loadImage('./img/bp.png')
     imgs.R={'id':'R',
     'img':img,
     'desc':"White Rook"}
-    //a=this.NewChessBoard('rnbqkbnr/pp4pp/8/2pppp2/8/P7/1PPPPPPP/RNB1KBNR','a2a3','last')
-    //a.preformMove('a3a4',true)
-    //a.preformMove('a4a5',true)
-    //a.preformMove('a5a6',true)
-    //a.preformMove('a6b7',true)
-    //console.log('t')
 })                                                     
 .catch(err=>{
     console.log(err)

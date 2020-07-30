@@ -72,9 +72,7 @@ bot.on('message', msg => {
                             msg.channel.send(`Nice Move ${msg.author.username}, but it's not the best line! Try again!`)
                             return;
                         } else if (activePuzzleData.lines[currentMove] == 'win') {
-                            msg.channel.send(`You won ${msg.author.username}!`)
-                            puzzleInProgress = false;
-                            activePuzzleData = null
+                            winScreen(msg)
                             return;
                         }
                         msg.channel.send(`Nice move ${msg.author.username}!`)
@@ -82,25 +80,22 @@ bot.on('message', msg => {
                         let opponentMove = Object.keys(activePuzzleData.lines[currentMove])[0]
 
                         if (activePuzzleData.lines[currentMove][opponentMove] == 'win') {
-                            msg.channel.send(`You won ${msg.author.username}!`, {
-                                files: [path]
-                            })
-                            puzzleInProgress = false;
-                            activePuzzleData = null
+                            //msg.channel.send(`You won ${msg.author.username}!`, {
+                            //    files: [path]
+                            //})
+                            winScreen(msg)
                             return;
                         }
-
+                        activePuzzleData.lines = activePuzzleData.lines[currentMove][opponentMove]
+                        if (activePuzzleData.lines == 'win') {
+                            winScreen(msg)
+                            return;
+                        }
                         path = board.preformMove(opponentMove, true)
                         msg.channel.send('Whats next?', {
                             files: [path]
                         })
-                        activePuzzleData.lines = activePuzzleData.lines[currentMove][opponentMove]
-                        if (activePuzzleData.lines == 'win') {
-                            msg.channel.send(`You won ${msg.author.username}!`)
-                            puzzleInProgress = false;
-                            activePuzzleData = null
-                            return;
-                        }
+
                     } else {
 
                     }
@@ -129,6 +124,13 @@ bot.on('message', msg => {
         msg.reply('there was an error trying to execute that command!');
     }
 });
+
+function winScreen(msg){
+    let lichessLink = "https://lichess.org/analysis/"+activePuzzleData.fen +'_'+ (activePuzzleData.toPlay == 'black' ? 'b' : 'w')
+    msg.channel.send(`You won ${msg.author.username}! look at this puzzle here! ${lichessLink}`)
+    puzzleInProgress = false;
+    activePuzzleData = null
+}
 
 function convertSANtoUCI(move, board) {
     move = move.replace('x','').replace('+','')

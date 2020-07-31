@@ -5,3 +5,4 @@ node_modules/
 .env
 puzzles/puzzlesOld/*.json
 puzzles/puzzlesOld/*.png
+img/currentBoard.png
